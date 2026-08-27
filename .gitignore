@@ -1,0 +1,77 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# Secrets — never commit
+**/.env
+**/*.pfx
+**/*.p12
+**/*license*
+**/*.tclrs
+**/*.tclrq
+secrets/
+
+# TwinCAT 3 (GitHub official TwinCAT3.gitignore, trimmed)
+*.plcproj.bak
+*.plcproj.orig
+*.tpy
+*.library
+*.compiled-library
+*.compileinfo
+*.asm
+*.core
+LineIDs.dbg
+LineIDs.dbg.bak
+*.tmcRefac
+*.tsproj.bak
+*.tsproj.b?k
+*.tsproj.orig
+*.xti.bak
+*.xti.bk?
+*.xti.orig
+*.xtv
+*.xtv.bak
+**/.TcGit/
+**/_Boot/
+**/_CompileInfo/
+**/_Libraries/
+**/_ModuleInstall/
+**/_Deployment/
+**/_Repository/
+**/.vs/
+*.~u
+*.project.~u
+*.suo
+*.vsm
+
+# TwinCAT HMI junk
+**/.engineering_servers/
+**/liveview_*
+**/*.db-shm
+**/*.db-wal
+**/tchmipublish.journal.json
+
+# Rockwell / Logix artifacts that should not be public by default
+*.ACD.bak
+*.BAK
+*.SEM
+*.WRK
+*.OPT
+*.DAT
+Dump/
+
+# Python
+__pycache__/
+.venv/
+venv/
+*.pyc
+
+# Video binaries (link to unlisted YouTube / Drive instead)
+*.mp4
+*.mov
+*.avi
