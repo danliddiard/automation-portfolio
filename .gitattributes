@@ -1,0 +1,18 @@
+# Normalize everything by default; the exceptions below are the ones that matter.
+* text=auto eol=lf
+
+# Rockwell exports are CRLF XML with a BOM. Studio 5000 round-trips them fine either
+# way, but keeping them byte-identical to what Studio wrote keeps diffs honest.
+*.L5X text eol=crlf linguist-language=XML
+*.L5K text eol=crlf
+*.csv text eol=crlf
+
+# Diagrams are committed source, but they should not decide the repo's language bar.
+*.svg text eol=lf linguist-detectable=false
+
+# Never diff or merge these as text.
+*.ACD binary
+*.mer binary
+*.apa binary
+*.png binary
+*.jpg binary

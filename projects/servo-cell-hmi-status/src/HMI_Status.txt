@@ -1,0 +1,83 @@
+HMI_Status - neutral text listing
+==========================================================================
+
+Source of truth is TECE1250_ServoCell_V6_2_SeqStatus.L5X. This file is here so
+the logic is readable in a browser and pasteable into an existing project.
+
+To paste: open the target RLL routine in Studio 5000, select the end rung, then
+paste the block at the bottom of this file. Studio creates one rung per line.
+Rung comments do NOT survive a paste - import the L5X if you want them.
+
+Create the six tags first (Seq_Status_tags.csv) or the paste will not verify.
+
+--------------------------------------------------------------------------
+
+Rung 0
+  // Fault source 1 - drive/axis. Any non-zero AxisFault word on any of the
+  // five axes. The word is latched by the drive and stays set until the
+  // operator MAFRs that axis, so no seal-in is needed here.
+  [NEQ(Zippy_Axis_141.AxisFault,0),NEQ(Zippy_Axis_142.AxisFault,0),NEQ(Zippy_Axis_143.AxisFault,0),NEQ(Zippy_Axis_144.AxisFault,0),NEQ(Zippy_Axis_145.AxisFault,0)]OTE(Axis_Faulted);
+
+Rung 1
+  // Fault source 2a - the sequencer asked for servo-on and was refused.
+  // Broken out per instruction family so the pill and the fault list can say
+  // which command was rejected, not just that something was.
+  [XIC(MSO_141.ER),XIC(MSO_142.ER),XIC(MSO_143.ER),XIC(MSO_144.ER),XIC(MSO_145.ER)]OTE(MSO_Error);
+
+Rung 2
+  // Fault source 2b - a jog was refused. This is the one that would
+  // otherwise fail silently: the step timer keeps advancing and the conveyor
+  // simply never moves.
+  [XIC(MAJ_141.ER),XIC(MAJ_142.ER),XIC(MAJ_143.ER),XIC(MAJ_144.ER),XIC(MAJ_145.ER)]OTE(MAJ_Error);
+
+Rung 3
+  // Fault source 2c - a stop was refused. Treated as a fault, not a
+  // nuisance: an axis that will not take a MAS is an axis that will not come
+  // down on the shutdown step.
+  [XIC(MAS_141.ER),XIC(MAS_142.ER),XIC(MAS_143.ER),XIC(MAS_144.ER),XIC(MAS_145.ER)]OTE(MAS_Error);
+
+Rung 4
+  // Roll the three command errors into one summary. .ER bits self-clear when
+  // the instruction re-executes, so a successful restart clears the pill -
+  // there is deliberately no separate acknowledge latch.
+  [XIC(MSO_Error),XIC(MAJ_Error),XIC(MAS_Error)]OTE(Seq_Cmd_Error);
+
+Rung 5
+  // PRIORITY ENCODER, rungs 5-8. Seq_Status is written unconditionally to
+  // STOPPED here and then overwritten in ascending priority below, so the
+  // last true rung wins and the tag can never be left stale or undefined on
+  // any scan. Read these four rungs as one block; do not reorder them.
+  // 0 STOPPED (default) < 1 RUNNING < 2 HOLDING < 3 FAULTED.
+  MOVE(0,Seq_Status);
+
+Rung 6
+  // 1 RUNNING. Auto latched and inside the motion steps 2-11. Step 1 is the
+  // MSO settle and is not running yet; step 12 only exists for the single
+  // scan before the wrap rung folds it back to 2.
+  XIC(Auto_Running)GE(Seq_Step,2)LE(Seq_Step,11)MOVE(1,Seq_Status);
+
+Rung 7
+  // 2 HOLDING. Commanded transition, motion not at steady state: step 1 is
+  // servo-on settling, step 99 is the decel-and-hold before MSF. Step 99 is
+  // intentionally NOT gated by Auto_Running - Stop_PB drops that bit on the
+  // same scan it forces the shutdown step.
+  [EQ(Seq_Step,1),EQ(Seq_Step,99)]MOVE(2,Seq_Status);
+
+Rung 8
+  // 3 FAULTED. Highest priority, written last. A drive fault or a refused
+  // motion command outranks whatever the step counter thinks it is doing.
+  [XIC(Axis_Faulted),XIC(Seq_Cmd_Error)]MOVE(3,Seq_Status);
+
+--------------------------------------------------------------------------
+
+PASTE BLOCK (rungs 0-8, in order):
+
+[NEQ(Zippy_Axis_141.AxisFault,0),NEQ(Zippy_Axis_142.AxisFault,0),NEQ(Zippy_Axis_143.AxisFault,0),NEQ(Zippy_Axis_144.AxisFault,0),NEQ(Zippy_Axis_145.AxisFault,0)]OTE(Axis_Faulted);
+[XIC(MSO_141.ER),XIC(MSO_142.ER),XIC(MSO_143.ER),XIC(MSO_144.ER),XIC(MSO_145.ER)]OTE(MSO_Error);
+[XIC(MAJ_141.ER),XIC(MAJ_142.ER),XIC(MAJ_143.ER),XIC(MAJ_144.ER),XIC(MAJ_145.ER)]OTE(MAJ_Error);
+[XIC(MAS_141.ER),XIC(MAS_142.ER),XIC(MAS_143.ER),XIC(MAS_144.ER),XIC(MAS_145.ER)]OTE(MAS_Error);
+[XIC(MSO_Error),XIC(MAJ_Error),XIC(MAS_Error)]OTE(Seq_Cmd_Error);
+MOVE(0,Seq_Status);
+XIC(Auto_Running)GE(Seq_Step,2)LE(Seq_Step,11)MOVE(1,Seq_Status);
+[EQ(Seq_Step,1),EQ(Seq_Step,99)]MOVE(2,Seq_Status);
+[XIC(Axis_Faulted),XIC(Seq_Cmd_Error)]MOVE(3,Seq_Status);
