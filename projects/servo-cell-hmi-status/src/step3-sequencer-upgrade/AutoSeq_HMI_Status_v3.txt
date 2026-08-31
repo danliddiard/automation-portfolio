@@ -1,9 +1,9 @@
 AutoSeq_V5 and HMI_Status (v3) - neutral text listing
 ==========================================================================
 
-Source of truth is TECE1250_ServoCell_V6_4_SeqUpgrade.L5X.
+Source of truth is TECE1250_GreenMachine_V7_5_SeqUpgrade.L5X.
 
-V6_4 = V6_3 plus four sequencer changes. Cumulative - it contains the status pill
+V7_5 = V7_3 plus four sequencer changes. Cumulative - it contains the status pill
 and the manual-faceplate work as well.
 
 --------------------------------------------------------------------------

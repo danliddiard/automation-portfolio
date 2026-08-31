@@ -24,7 +24,7 @@ MOVE(0,Seq_Status)                       <- unconditional default
 ...FAULTED conditions... MOVE(3,...)     <- last write wins
 ```
 
-> Rungs 10–13 in `V6_3`, rungs 5–8 in `V6_2`. The block moved when the fault rung was
+> Rungs 10–13 in `V7_3`, rungs 5–8 in `V7_2`. The block moved when the fault rung was
 > split per axis in step 2; nothing about the encoder itself changed.
 
 Read the block bottom-up: **the highest-priority true rung is the one that survives the
@@ -106,7 +106,7 @@ somebody later trends `Seq_Status` against `Seq_Step`.
 
 ## Per-axis fault bits (added in step 2)
 
-`V6_2` computed `Axis_Faulted` in a single five-leg rung. `V6_3` splits it into
+`V7_2` computed `Axis_Faulted` in a single five-leg rung. `V7_3` splits it into
 `Axis_Fault_141..145`, one rung each, then ORs them into the same summary bit.
 
 Identical logic, but the per-axis bits are what the manual screen's summary strip needs — a

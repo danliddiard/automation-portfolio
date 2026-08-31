@@ -1,6 +1,6 @@
 # Build sheet — one manual screen for all five servos, FactoryTalk View ME v16
 
-**Prerequisite:** `TECE1250_ServoCell_V6_3_ManualFaceplate.L5X` imported. See
+**Prerequisite:** `TECE1250_GreenMachine_V7_3_ManualFaceplate.L5X` imported. See
 [../src/step2-manual-faceplate](../src/step2-manual-faceplate).
 
 Replaces five near-identical manual screens with one screen and one faceplate, using ME

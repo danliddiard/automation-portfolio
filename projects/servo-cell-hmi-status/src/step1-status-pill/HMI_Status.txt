@@ -1,7 +1,7 @@
 HMI_Status - neutral text listing
 ==========================================================================
 
-Source of truth is TECE1250_ServoCell_V6_2_SeqStatus.L5X. This file is here so
+Source of truth is TECE1250_GreenMachine_V7_2_SeqStatus.L5X. This file is here so
 the logic is readable in a browser and pasteable into an existing project.
 
 To paste: open the target RLL routine in Studio 5000, select the end rung, then

@@ -1,4 +1,4 @@
-# Sequencer upgrade (V6_4) — the sequencer stops assuming
+# Sequencer upgrade (V7_5) — the sequencer stops assuming
 
 Four changes to `AutoSeq_V5` and `HMI_Status`. Each is independently justifiable, and in the
 **nominal case the machine behaves exactly as it did before** — every change is on a failure

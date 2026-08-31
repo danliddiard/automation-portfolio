@@ -54,7 +54,7 @@ changes five live MAJ instructions, so it goes second.
 
 | File | What it is |
 |---|---|
-| [`src/step1-status-pill/TECE1250_ServoCell_V6_2_SeqStatus.L5X`](src/step1-status-pill/TECE1250_ServoCell_V6_2_SeqStatus.L5X) | Full controller export. Adds 6 tags, the `HMI_Status` routine, and one JSR. |
+| [`src/step1-status-pill/TECE1250_GreenMachine_V7_2_SeqStatus.L5X`](src/step1-status-pill/TECE1250_GreenMachine_V7_2_SeqStatus.L5X) | Full controller export. Adds 6 tags, the `HMI_Status` routine, and one JSR. |
 | [`src/step1-status-pill/HMI_Status.txt`](src/step1-status-pill/HMI_Status.txt) | The same 9 rungs as neutral text — readable in a browser, pasteable into an existing project. |
 | [`src/step1-status-pill/Seq_Status_tags.csv`](src/step1-status-pill/Seq_Status_tags.csv) | Logix tag import CSV for the 6 new tags. |
 | [`docs/state-model.md`](docs/state-model.md) | Truth table, priority rules, fault sourcing, scan-order note. |
@@ -62,12 +62,12 @@ changes five live MAJ instructions, so it goes second.
 
 ### Step 2 — what the single manual screen needs
 
-`V6_3` is cumulative: everything in `V6_2` plus three PLC changes. Almost all of the manual
+`V7_3` is cumulative: everything in `V7_2` plus three PLC changes. Almost all of the manual
 screen is HMI work; this is only the part that cannot be done from the HMI.
 
 | File | What it is |
 |---|---|
-| [`src/step2-manual-faceplate/TECE1250_ServoCell_V6_3_ManualFaceplate.L5X`](src/step2-manual-faceplate/TECE1250_ServoCell_V6_3_ManualFaceplate.L5X) | Full controller export. `V6_2` + 11 tags + the changed jog rungs. |
+| [`src/step2-manual-faceplate/TECE1250_GreenMachine_V7_3_ManualFaceplate.L5X`](src/step2-manual-faceplate/TECE1250_GreenMachine_V7_3_ManualFaceplate.L5X) | Full controller export. `V7_2` + 11 tags + the changed jog rungs. |
 | [`src/step2-manual-faceplate/HMI_Status_v2.txt`](src/step2-manual-faceplate/HMI_Status_v2.txt) | Updated `HMI_Status`, plus the five changed `Manual_Conv` jog rungs. |
 | [`src/step2-manual-faceplate/Manual_Faceplate_tags.csv`](src/step2-manual-faceplate/Manual_Faceplate_tags.csv) | Tag CSV for step 2's additions only. |
 | [`src/step2-manual-faceplate/parameter-files/`](src/step2-manual-faceplate/parameter-files) | Five ME parameter files, `#1=141` … `#1=145`. |
@@ -75,7 +75,7 @@ screen is HMI work; this is only the part that cannot be done from the HMI.
 
 The three PLC changes, and why each exists:
 
-- **`Axis_Fault_141..145`** — `V6_2` computed one cell-level `Axis_Faulted` in a single
+- **`Axis_Fault_141..145`** — `V7_2` computed one cell-level `Axis_Faulted` in a single
   five-leg rung. The summary strip needs to light the row that is actually faulted, not tell
   the operator to go find the drive. Same logic, split per axis, then OR'd back into the
   summary the pill reads.
@@ -88,12 +88,12 @@ The three PLC changes, and why each exists:
 
 ### Step 3 — sequencer upgrade
 
-`V6_4` is cumulative again. Four changes, all of them on a failure path, a guard, or a
+`V7_5` is cumulative again. Four changes, all of them on a failure path, a guard, or a
 read-only diagnostic — **the nominal cycle behaves exactly as it did before.**
 
 | File | What it is |
 |---|---|
-| [`src/step3-sequencer-upgrade/TECE1250_ServoCell_V6_4_SeqUpgrade.L5X`](src/step3-sequencer-upgrade/TECE1250_ServoCell_V6_4_SeqUpgrade.L5X) | Full controller export. `V6_3` + 4 tags + the sequencer changes. |
+| [`src/step3-sequencer-upgrade/TECE1250_GreenMachine_V7_5_SeqUpgrade.L5X`](src/step3-sequencer-upgrade/TECE1250_GreenMachine_V7_5_SeqUpgrade.L5X) | Full controller export. `V7_3` + 4 tags + the sequencer changes. |
 | [`src/step3-sequencer-upgrade/AutoSeq_HMI_Status_v3.txt`](src/step3-sequencer-upgrade/AutoSeq_HMI_Status_v3.txt) | Both changed routines as neutral text. |
 | [`src/step3-sequencer-upgrade/Sequencer_Upgrade_tags.csv`](src/step3-sequencer-upgrade/Sequencer_Upgrade_tags.csv) | Tag CSV for step 3's additions only. |
 | [`docs/sequencer-upgrade.md`](docs/sequencer-upgrade.md) | What changed, why, and how to test the failure paths. |
@@ -133,11 +133,29 @@ The state model transfers; the tag names do not. Three things to change:
   `XIC(Axis.PhysicalAxisFault)` and `XIC(Axis.ModuleFault)` — and leave the rest of the
   routine alone.
 
+## Version numbering
+
+The machine is the **Green Machine** — the motion group in the controller is already called
+`Mean_Green_Servos`, so the files are named for the machine rather than for a folder.
+
+Numbering follows the ACD on Dan's bench, not this repo's history:
+
+| File | Notes |
+|---|---|
+| `V7_2` | Status pill |
+| `V7_3` | + manual faceplate groundwork |
+| `V7_4` | **Not in this repo.** The first import, which carried a `LIM` instruction on the `Travel_Time` clamp rung |
+| `V7_5` | `LIM` replaced with `GE`/`LE`. This is the current file |
+
+The gap at `V7_4` is deliberate — it is a real version that exists on disk and briefly had a
+real defect. Renumbering to hide it would make the bench copy and the repo disagree, which is
+the whole problem version numbers exist to prevent.
+
 ## Import order
 
 A **full controller L5X import creates a new project** — it does not merge into an open one.
-So import `V6_2`, verify the pill, then import `V6_3` as a separate project rather than
-expecting it to layer on top. Any hand edits made to the `V6_2` project in between are not
+So import `V7_2`, verify the pill, then import `V7_3` as a separate project rather than
+expecting it to layer on top. Any hand edits made to the `V7_2` project in between are not
 carried across.
 
 To apply step 2 on top of a project you have already been editing, use the partial artifacts

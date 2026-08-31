@@ -1,10 +1,10 @@
 HMI_Status (v2) and Manual_Conv jog rungs - neutral text listing
 ==========================================================================
 
-Source of truth is TECE1250_ServoCell_V6_3_ManualFaceplate.L5X.
+Source of truth is TECE1250_GreenMachine_V7_3_ManualFaceplate.L5X.
 
-V6_3 = everything in V6_2 (the status pill) PLUS the three PLC changes the single
-manual faceplate needs. If you already imported V6_2, the only new things here are
+V7_3 = everything in V7_2 (the status pill) PLUS the three PLC changes the single
+manual faceplate needs. If you already imported V7_2, the only new things here are
 the five Axis_Fault_14x rungs, the Axis_Faulted summary rung, and the five changed
 MAJ rungs in Manual_Conv.
 
@@ -117,7 +117,7 @@ Rung 48
 
 --------------------------------------------------------------------------
 
-CHANGED FROM V6_2
+CHANGED FROM V7_2
 
   HMI_Status rung 0 was one five-leg rung driving Axis_Faulted. It is now five
   one-line rungs driving Axis_Fault_141..145, plus a summary rung. Same logic,
