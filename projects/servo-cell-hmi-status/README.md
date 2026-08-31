@@ -133,6 +133,21 @@ The state model transfers; the tag names do not. Three things to change:
   `XIC(Axis.PhysicalAxisFault)` and `XIC(Axis.ModuleFault)` — and leave the rest of the
   routine alone.
 
+### Step 4 — the manual routine was killing every auto jog
+
+Found on the bench the first time the cell ran in auto. `Manual_Conv`'s per-axis "jog release"
+rung — `XIO(Jog_14x)XIC(MAJ_14x.IP)MAS(...)` — had no `Mode_Manual` gate, so it read the auto
+sequencer's jog as an abandoned manual one and stopped it about a scan after it started. Every
+step, every axis. The jog *start* rung was gated; the *release* rung was not.
+
+| File | What it is |
+|---|---|
+| [`src/step4-manual-jog-gate/TECE1250_GreenMachine_V7_6_JogGate.L5X`](src/step4-manual-jog-gate/TECE1250_GreenMachine_V7_6_JogGate.L5X) | Full controller export. `V7_5` + the gate + `Stop_PB` shipping as 0. |
+| [`src/step4-manual-jog-gate/Manual_Conv_jog_release.txt`](src/step4-manual-jog-gate/Manual_Conv_jog_release.txt) | The five changed rungs as neutral text. |
+| [`docs/manual-jog-gate.md`](docs/manual-jog-gate.md) | The interaction, the fix, and why axis 145 was the clue. |
+
+One contact on five rungs. No new tags.
+
 ## Version numbering
 
 The machine is the **Green Machine** — the motion group in the controller is already called
@@ -145,7 +160,8 @@ Numbering follows the ACD on Dan's bench, not this repo's history:
 | `V7_2` | Status pill |
 | `V7_3` | + manual faceplate groundwork |
 | `V7_4` | **Not in this repo.** The first import, which carried a `LIM` instruction on the `Travel_Time` clamp rung |
-| `V7_5` | `LIM` replaced with `GE`/`LE`. This is the current file |
+| `V7_5` | `LIM` replaced with `GE`/`LE` |
+| `V7_6` | `Mode_Manual` gate on the jog-release rungs; `Stop_PB` ships as 0. Current |
 
 The gap at `V7_4` is deliberate — it is a real version that exists on disk and briefly had a
 real defect. Renumbering to hide it would make the bench copy and the repo disagree, which is
