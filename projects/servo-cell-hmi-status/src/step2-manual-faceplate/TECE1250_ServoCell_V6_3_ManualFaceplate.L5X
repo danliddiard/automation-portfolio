@@ -2270,10 +2270,10 @@
 <![CDATA[0 idle, 1 MSO, 2-6 forward 141-145, 7-11 reverse 145-141, 99 shutdown]]>
 </Description>
 <Data Format="L5K">
-<![CDATA[99]]>
+<![CDATA[0]]>
 </Data>
 <Data Format="Decorated">
-<DataValue DataType="DINT" Radix="Decimal" Value="99"/>
+<DataValue DataType="DINT" Radix="Decimal" Value="0"/>
 </Data>
 </Tag>
 <Tag Name="Seq_TMR" TagType="Base" DataType="TIMER" Constant="false" ExternalAccess="Read/Write">
@@ -2481,14 +2481,14 @@
 <![CDATA[Decel hold timer before MSF. Used only by the shutdown rung.]]>
 </Description>
 <Data Format="L5K">
-<![CDATA[[-1072841169,600,34]]]>
+<![CDATA[[0,600,0]]]>
 </Data>
 <Data Format="Decorated">
 <Structure DataType="TIMER">
 <DataValueMember Name="PRE" DataType="DINT" Radix="Decimal" Value="600"/>
-<DataValueMember Name="ACC" DataType="DINT" Radix="Decimal" Value="34"/>
-<DataValueMember Name="EN" DataType="BOOL" Value="1"/>
-<DataValueMember Name="TT" DataType="BOOL" Value="1"/>
+<DataValueMember Name="ACC" DataType="DINT" Radix="Decimal" Value="0"/>
+<DataValueMember Name="EN" DataType="BOOL" Value="0"/>
+<DataValueMember Name="TT" DataType="BOOL" Value="0"/>
 <DataValueMember Name="DN" DataType="BOOL" Value="0"/>
 </Structure>
 </Data>

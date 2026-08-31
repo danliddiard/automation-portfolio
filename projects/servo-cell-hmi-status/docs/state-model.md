@@ -113,3 +113,36 @@ Identical logic, but the per-axis bits are what the manual screen's summary stri
 single cell-level lamp tells an operator that something is wrong and makes them go find out
 which drive. The status pill still reads only the summary. See
 [ftview-me-manual-faceplate.md](ftview-me-manual-faceplate.md).
+
+## First scan after download
+
+Tag values in an L5X are whatever they were when the project was exported, and the source
+export (`V6_1`, 31 Aug) was taken **mid-shutdown**: `Seq_Step` was 99 and `Stop_TMR` was 34 ms
+into its 600 ms hold, with `EN` and `TT` set.
+
+Downloaded as-is, that meant the controller would resume someone else's shutdown on its first
+scan — rung 18 firing MAS on all five axes, then rung 19 MSF-ing them ~566 ms later — and the
+pill would read HOLDING for that window before settling to STOPPED.
+
+Harmless and self-correcting, but a project should download into a known idle state rather
+than into the middle of a sequence, so both L5X files ship with:
+
+| Tag | Was | Now |
+|---|---|---|
+| `Seq_Step` | 99 | 0 |
+| `Stop_TMR` | `ACC 34, EN 1, TT 1` | `ACC 0, EN 0, TT 0` |
+
+Changed in both the decorated data and the L5K copy, which disagreed after the first edit —
+the L5K form of a `TIMER` is `[control_word, PRE, ACC]`, and the control word still carried
+`EN` and `TT` at bits 31 and 30.
+
+Nothing else was reset. The `MAS_14x` and `MSF_14x` instructions carry stale `EN`/`DN`/`PC`
+bits from that same export, and those are left alone deliberately: they are status bits that
+no rung reads and that the instruction overwrites the next time it executes. Only the two
+values that actually drive behaviour on scan one were touched.
+
+**`.ER` was clear on every motion instruction in the export**, so the pill does not come up
+FAULTED on a fresh download. That was worth checking rather than assuming — a stale `.ER`
+would have propagated straight through `Seq_Cmd_Error` into a red pill on a machine that had
+never run, and, per the no-acknowledge-latch decision above, it would have stayed red until
+the first successful cycle.
