@@ -49,10 +49,18 @@ scan it starts**, and all ten motion steps fire in a few milliseconds — five a
 forward and reverse faster than anything can respond to.
 
 ```
-MOVE(3500,Seq_TMR.PRE);                                    <- safe default, unconditional
-LIM(500,Travel_Time,10000)MOVE(Travel_Time,Seq_TMR.PRE);   <- operator value, if sane
+MOVE(3500,Seq_TMR.PRE);                                          <- safe default, unconditional
+GE(Travel_Time,500)LE(Travel_Time,10000)MOVE(Travel_Time,...);   <- operator value, if sane
 XIC(Auto_Running)GE(Seq_Step,2)LE(Seq_Step,11)TON(Seq_TMR,?,?);
 ```
+
+`GE`/`LE` in series rather than `LIM`. Two reasons, and the first one is the one that
+actually bit: the first cut of this rung used `LIM(500,Travel_Time,10000)`, which was the only
+`LIM` in the project, and Studio 5000 rendered its operands as `Unknown` on import while the
+rest of the program's `GE`/`LE` range tests came through clean. The second reason is why the
+fix is right rather than merely expedient — **`LIM` inverts its own meaning when the low limit
+exceeds the high limit**, becoming true outside the band instead of inside it. That is not a
+behaviour to leave sitting behind a number an operator can type.
 
 Same priority-encoder shape as `Seq_Status`: write the safe value unconditionally, override it
 only when the override is valid. An out-of-range entry falls back to 3.5 s rather than being

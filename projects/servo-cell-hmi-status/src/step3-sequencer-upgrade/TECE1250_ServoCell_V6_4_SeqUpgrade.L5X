@@ -2834,10 +2834,11 @@ The XIO(Servo_On_Timeout) makes a timeout a failed start rather than a slow one 
 </Rung>
 <Rung Number="20" Type="N">
 <Comment>
-<![CDATA[Operator value wins only if it is sane. Travel_Time is HMI-writable and feeds the step timer directly; at 0 the TON is done on the scan it starts and all ten motion steps fire in a few milliseconds. Same priority-encoder shape as HMI_Status: safe default written unconditionally above, override here.]]>
+<![CDATA[Operator value wins only if it is sane. Travel_Time is HMI-writable and feeds the step timer directly; at 0 the TON is done on the scan it starts and all ten motion steps fire in a few milliseconds. Same priority-encoder shape as HMI_Status: safe default written unconditionally above, override here.
+GE/LE in series rather than LIM: it is the idiom the rest of this program already uses for a range test, and LIM inverts its own meaning when the low limit exceeds the high one - not a behaviour to leave sitting behind an operator-writable number.]]>
 </Comment>
 <Text>
-<![CDATA[LIM(500,Travel_Time,10000)MOVE(Travel_Time,Seq_TMR.PRE);]]>
+<![CDATA[GE(Travel_Time,500)LE(Travel_Time,10000)MOVE(Travel_Time,Seq_TMR.PRE);]]>
 </Text>
 </Rung>
 <Rung Number="21" Type="N">

@@ -113,7 +113,11 @@ Rung 20
   // starts and all ten motion steps fire in a few milliseconds. Same
   // priority-encoder shape as HMI_Status: safe default written
   // unconditionally above, override here.
-  LIM(500,Travel_Time,10000)MOVE(Travel_Time,Seq_TMR.PRE);
+  // GE/LE in series rather than LIM: it is the idiom the rest of this
+  // program already uses for a range test, and LIM inverts its own meaning
+  // when the low limit exceeds the high one - not a behaviour to leave
+  // sitting behind an operator-writable number.
+  GE(Travel_Time,500)LE(Travel_Time,10000)MOVE(Travel_Time,Seq_TMR.PRE);
 
 Rung 21
   // Step timer for motion steps 2-11. Preset is set by the two rungs above.
