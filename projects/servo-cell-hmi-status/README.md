@@ -86,6 +86,29 @@ The three PLC changes, and why each exists:
   its shutdown decel.
 - **`Sel_Axis`** — so the faceplate can name the axis it is commanding. No ladder reads it.
 
+### Step 3 — sequencer upgrade
+
+`V6_4` is cumulative again. Four changes, all of them on a failure path, a guard, or a
+read-only diagnostic — **the nominal cycle behaves exactly as it did before.**
+
+| File | What it is |
+|---|---|
+| [`src/step3-sequencer-upgrade/TECE1250_ServoCell_V6_4_SeqUpgrade.L5X`](src/step3-sequencer-upgrade/TECE1250_ServoCell_V6_4_SeqUpgrade.L5X) | Full controller export. `V6_3` + 4 tags + the sequencer changes. |
+| [`src/step3-sequencer-upgrade/AutoSeq_HMI_Status_v3.txt`](src/step3-sequencer-upgrade/AutoSeq_HMI_Status_v3.txt) | Both changed routines as neutral text. |
+| [`src/step3-sequencer-upgrade/Sequencer_Upgrade_tags.csv`](src/step3-sequencer-upgrade/Sequencer_Upgrade_tags.csv) | Tag CSV for step 3's additions only. |
+| [`docs/sequencer-upgrade.md`](docs/sequencer-upgrade.md) | What changed, why, and how to test the failure paths. |
+
+The change worth having is the first one. Step 1 issued five MSOs, waited 800 ms, and
+**advanced whether or not any axis actually enabled** — so an inhibited drive meant step 2
+jogging an axis that was not on, the step timer counting merrily, and a conveyor sitting still
+through all ten motion steps. The settle is now a timeout rather than a delay: advance on all
+five reporting `ServoActionStatus`, or latch `Servo_On_Timeout` and stop at step 1.
+
+Also: `Travel_Time` is clamped before it reaches the step timer (at 0 the TON is done on the
+scan it starts, and all ten steps fire in milliseconds), `Start_Blocked_Reason` finally
+explains why a start press in manual mode does nothing at all, and `Cycle_Count` gives the
+`Cell.Production` OPC UA contract its first real entry.
+
 ## Drop it into an existing project
 
 1. Import `src/step1-status-pill/Seq_Status_tags.csv` — `Tools > Import > Tags and Logic Comments`.

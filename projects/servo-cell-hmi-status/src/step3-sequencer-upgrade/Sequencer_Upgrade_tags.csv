@@ -1,0 +1,9 @@
+remark,"CSV-Import-Export"
+remark,"Version = RSLogix 5000 v38.01"
+remark,"Owner = Daniel Liddiard"
+remark,"Step 3 only. Import steps 1 and 2 CSVs first."
+TYPE,SCOPE,NAME,DESCRIPTION,DATATYPE,SPECIFIER,ATTRIBUTES
+TAG,,All_Servos_On,"All five axes reporting ServoActionStatus. Proof that step 1 enabled the drives rather than assuming.",BOOL,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
+TAG,,Cycle_Count,"Completed auto cycles since reset. Incremented on the step 12 wrap. HMI may write 0 to clear.",DINT,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
+TAG,,Servo_On_Timeout,"Step 1 settle expired with an axis not enabled. Latched; cleared by the next start attempt.",BOOL,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
+TAG,,Start_Blocked_Reason,"Why a start press did nothing. 0 clear, 1 in manual, 2 faulted, 3 already running. HMI diagnostic only.",DINT,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
