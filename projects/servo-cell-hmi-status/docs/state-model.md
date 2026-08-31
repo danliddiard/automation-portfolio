@@ -15,14 +15,17 @@ the machine reads it. That is the whole contract — the pill is a view, not an 
 
 ## How it is written: priority encoder, not a chain of exclusive rungs
 
-Rungs 5–8 all write the same DINT. That is deliberate.
+Four consecutive rungs all write the same DINT. That is deliberate.
 
 ```
-Rung 5   MOVE(0,Seq_Status)                       <- unconditional default
-Rung 6   ...RUNNING conditions... MOVE(1,...)
-Rung 7   ...HOLDING conditions... MOVE(2,...)
-Rung 8   ...FAULTED conditions... MOVE(3,...)     <- last write wins
+MOVE(0,Seq_Status)                       <- unconditional default
+...RUNNING conditions... MOVE(1,...)
+...HOLDING conditions... MOVE(2,...)
+...FAULTED conditions... MOVE(3,...)     <- last write wins
 ```
+
+> Rungs 10–13 in `V6_3`, rungs 5–8 in `V6_2`. The block moved when the fault rung was
+> split per axis in step 2; nothing about the encoder itself changed.
 
 Read the block bottom-up: **the highest-priority true rung is the one that survives the
 scan.** Two properties fall out of this that mutually-exclusive rungs do not give you
@@ -33,8 +36,8 @@ for free:
 - **No overlap bug.** Adding a fifth state later means inserting one rung at the right
   priority, not re-deriving every other rung's `XIO` guards.
 
-Do not reorder rungs 5–8. Do not add a second writer to `Seq_Status` anywhere else in
-the project.
+Do not reorder those four rungs. Do not add a second writer to `Seq_Status` anywhere else
+in the project.
 
 > Studio 5000 flags a duplicate *OTE* on a BOOL. It will not flag this, because these
 > are MOVEs to a DINT. The rung comments carry the warning instead.
@@ -64,7 +67,7 @@ Two independent sources, OR'd:
 
 | Tag | Source | Clears when |
 |---|---|---|
-| `Axis_Faulted` | `Zippy_Axis_141..145.AxisFault ≠ 0` | Operator MAFRs that axis (`Reset_14x`) |
+| `Axis_Faulted` | `Zippy_Axis_141..145.AxisFault ≠ 0`, via the per-axis `Axis_Fault_14x` bits | Operator MAFRs that axis (`Reset_14x`) |
 | `Seq_Cmd_Error` | `.ER` on any sequencer MSO / MAJ / MAS | The instruction re-executes on the next cycle |
 
 There is **no separate acknowledge latch**, and that is a design decision rather than an
@@ -100,3 +103,13 @@ counting, the sequence keeps advancing, and the conveyor simply never moves.
 first, it would report the previous scan's state and lag every transition by one scan —
 invisible on a 20 ms display update, but wrong, and wrong in a way that bites when
 somebody later trends `Seq_Status` against `Seq_Step`.
+
+## Per-axis fault bits (added in step 2)
+
+`V6_2` computed `Axis_Faulted` in a single five-leg rung. `V6_3` splits it into
+`Axis_Fault_141..145`, one rung each, then ORs them into the same summary bit.
+
+Identical logic, but the per-axis bits are what the manual screen's summary strip needs — a
+single cell-level lamp tells an operator that something is wrong and makes them go find out
+which drive. The status pill still reads only the summary. See
+[ftview-me-manual-faceplate.md](ftview-me-manual-faceplate.md).

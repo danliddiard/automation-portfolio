@@ -47,19 +47,50 @@ advancing, and the conveyor just never moves.
 
 ## Files
 
+Staged in two imports on purpose. Step 1 is low risk and touches nothing that moves. Step 2
+changes five live MAJ instructions, so it goes second.
+
+### Step 1 — the status pill
+
 | File | What it is |
 |---|---|
-| [`src/TECE1250_ServoCell_V6_2_SeqStatus.L5X`](src/TECE1250_ServoCell_V6_2_SeqStatus.L5X) | Full controller export. Import and run. Adds 6 tags, the `HMI_Status` routine, and one JSR. |
-| [`src/HMI_Status.txt`](src/HMI_Status.txt) | The same 9 rungs as neutral text — readable in a browser, pasteable into an existing project. |
-| [`src/Seq_Status_tags.csv`](src/Seq_Status_tags.csv) | Logix tag import CSV for the 6 new tags. Use with the paste block. |
+| [`src/step1-status-pill/TECE1250_ServoCell_V6_2_SeqStatus.L5X`](src/step1-status-pill/TECE1250_ServoCell_V6_2_SeqStatus.L5X) | Full controller export. Adds 6 tags, the `HMI_Status` routine, and one JSR. |
+| [`src/step1-status-pill/HMI_Status.txt`](src/step1-status-pill/HMI_Status.txt) | The same 9 rungs as neutral text — readable in a browser, pasteable into an existing project. |
+| [`src/step1-status-pill/Seq_Status_tags.csv`](src/step1-status-pill/Seq_Status_tags.csv) | Logix tag import CSV for the 6 new tags. |
 | [`docs/state-model.md`](docs/state-model.md) | Truth table, priority rules, fault sourcing, scan-order note. |
-| [`docs/ftview-me-multistate-indicator.md`](docs/ftview-me-multistate-indicator.md) | FTView ME build sheet — states, exact RGB, connection string, and the test that actually proves it. |
+| [`docs/ftview-me-multistate-indicator.md`](docs/ftview-me-multistate-indicator.md) | FTView ME build sheet for the pill. |
+
+### Step 2 — what the single manual screen needs
+
+`V6_3` is cumulative: everything in `V6_2` plus three PLC changes. Almost all of the manual
+screen is HMI work; this is only the part that cannot be done from the HMI.
+
+| File | What it is |
+|---|---|
+| [`src/step2-manual-faceplate/TECE1250_ServoCell_V6_3_ManualFaceplate.L5X`](src/step2-manual-faceplate/TECE1250_ServoCell_V6_3_ManualFaceplate.L5X) | Full controller export. `V6_2` + 11 tags + the changed jog rungs. |
+| [`src/step2-manual-faceplate/HMI_Status_v2.txt`](src/step2-manual-faceplate/HMI_Status_v2.txt) | Updated `HMI_Status`, plus the five changed `Manual_Conv` jog rungs. |
+| [`src/step2-manual-faceplate/Manual_Faceplate_tags.csv`](src/step2-manual-faceplate/Manual_Faceplate_tags.csv) | Tag CSV for step 2's additions only. |
+| [`src/step2-manual-faceplate/parameter-files/`](src/step2-manual-faceplate/parameter-files) | Five ME parameter files, `#1=141` … `#1=145`. |
+| [`docs/ftview-me-manual-faceplate.md`](docs/ftview-me-manual-faceplate.md) | Build sheet for the one-screen manual layout. |
+
+The three PLC changes, and why each exists:
+
+- **`Axis_Fault_141..145`** — `V6_2` computed one cell-level `Axis_Faulted` in a single
+  five-leg rung. The summary strip needs to light the row that is actually faulted, not tell
+  the operator to go find the drive. Same logic, split per axis, then OR'd back into the
+  summary the pill reads.
+- **`Jog_Speed_Man_141..145`** — the manual jog speed was a literal `10.0` buried inside the
+  `MAJ` instruction, so no screen could expose it. Now a tag per axis, defaulting to 10.0, so
+  behaviour on import is identical until someone changes a value. Per-axis on purpose:
+  `Jog_Accel` and `Jog_Decel` stay cell-wide because `AutoSeq_V5` shares them, including for
+  its shutdown decel.
+- **`Sel_Axis`** — so the faceplate can name the axis it is commanding. No ladder reads it.
 
 ## Drop it into an existing project
 
-1. Import `src/Seq_Status_tags.csv` — `Tools > Import > Tags and Logic Comments`.
+1. Import `src/step1-status-pill/Seq_Status_tags.csv` — `Tools > Import > Tags and Logic Comments`.
 2. Create an RLL routine named `HMI_Status` in `MainProgram`.
-3. Paste the block at the bottom of `src/HMI_Status.txt` into it.
+3. Paste the block at the bottom of `src/step1-status-pill/HMI_Status.txt` into it.
 4. Add `JSR(HMI_Status,0)` as the **last** rung of `MainRoutine`. Last, so the pill reports
    the state the scan ended in rather than lagging every transition by a scan.
 5. Build the indicator per [docs/ftview-me-multistate-indicator.md](docs/ftview-me-multistate-indicator.md).
@@ -78,6 +109,17 @@ The state model transfers; the tag names do not. Three things to change:
   family in your project does not expose that word, swap each leg for the specific bits —
   `XIC(Axis.PhysicalAxisFault)` and `XIC(Axis.ModuleFault)` — and leave the rest of the
   routine alone.
+
+## Import order
+
+A **full controller L5X import creates a new project** — it does not merge into an open one.
+So import `V6_2`, verify the pill, then import `V6_3` as a separate project rather than
+expecting it to layer on top. Any hand edits made to the `V6_2` project in between are not
+carried across.
+
+To apply step 2 on top of a project you have already been editing, use the partial artifacts
+instead: import `Manual_Faceplate_tags.csv`, then hand-edit the rungs listed in
+`HMI_Status_v2.txt`. Eleven tags, eleven rungs.
 
 ## Not done yet
 
