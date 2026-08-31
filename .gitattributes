@@ -6,6 +6,7 @@
 *.L5X text eol=crlf linguist-language=XML
 *.L5K text eol=crlf
 *.csv text eol=crlf
+*.par text eol=crlf
 
 # Diagrams are committed source, but they should not decide the repo's language bar.
 *.svg text eol=lf linguist-detectable=false
