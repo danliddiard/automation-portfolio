@@ -1,0 +1,33 @@
+Manual_Conv - electronic gearing rungs
+==========================================================================
+
+Source of truth is TECE1250_GreenMachine_V7_7_GearFix.L5X.
+
+V7_7 = V7_6 with one operand changed: axis 145's MAG used MAG_144 as its motion
+control tag, the same tag as axis 144's instruction. No new tags, no new rungs.
+
+Master is 141. Followers are 142-145. Ratio is Gear_Ratio_SP (currently 1.0).
+Engage requires Mode_Manual and all five Enable_14x.
+
+While GearingStatus is true, the manual jog/move rungs for 142-145 are blocked by
+XIO(...GearingStatus) - jog the master, not a follower.
+
+--------------------------------------------------------------------------
+
+Rung 52
+  // MAG engage. Master 141, ratio Gear_Ratio_SP, RatioFormat Real, MasterRef
+  // Command, Dir Same. All five must be enabled.
+  // Axis 145's motion control tag was MAG_144 - the same tag as axis 144's
+  // instruction. Two motion instructions sharing one MOTION_INSTRUCTION tag
+  // fight over .EN/.DN/.IP/.ER, so 145's gearing faults would have been
+  // invisible or blamed on 144. MAG_145 was declared and never referenced.
+  XIC(Mode_Manual)XIC(Enable_141)XIC(Enable_142)XIC(Enable_143)XIC(Enable_144)XIC(Enable_145)XIC(Gear_Engage_PB)ONS(Gear_ONS)MAG(Zippy_Axis_142,Zippy_Axis_141,MAG_142,0,Gear_Ratio_SP,1,1,1,1,1,100.0,1)MAG(Zippy_Axis_143,Zippy_Axis_141,MAG_143,0,Gear_Ratio_SP,1,1,1,1,1,100.0,1)MAG(Zippy_Axis_144,Zippy_Axis_141,MAG_144,0,Gear_Ratio_SP,1,1,1,1,1,100.0,1)MAG(Zippy_Axis_145,Zippy_Axis_141,MAG_145,0,Gear_Ratio_SP,1,1,1,1,1,100.0,1)OTL(Gear_Active)MOVE(Gear_Ratio_SP,Gear_Ratio_Act);
+
+Rung 53
+  // MAG release. MAS StopType Gear (3). Does not MSF.
+  XIC(Gear_Release_PB)ONS(GearRel_ONS)MAS(Zippy_Axis_142,MASG_142,3,1,Jog_Decel,0,0,100.0,2)MAS(Zippy_Axis_143,MASG_143,3,1,Jog_Decel,0,0,100.0,2)MAS(Zippy_Axis_144,MASG_144,3,1,Jog_Decel,0,0,100.0,2)MAS(Zippy_Axis_145,MASG_145,3,1,Jog_Decel,0,0,100.0,2)OTU(Gear_Active);
+
+Rung 54
+  // All_Geared lamp — only true when all four followers report
+  // GearingStatus.
+  XIC(Zippy_Axis_142.GearingStatus)XIC(Zippy_Axis_143.GearingStatus)XIC(Zippy_Axis_144.GearingStatus)XIC(Zippy_Axis_145.GearingStatus)OTE(All_Geared);

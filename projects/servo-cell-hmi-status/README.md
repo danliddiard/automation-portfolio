@@ -148,6 +148,21 @@ step, every axis. The jog *start* rung was gated; the *release* rung was not.
 
 One contact on five rungs. No new tags.
 
+### Step 5 — gearing fix
+
+| File | What it is |
+|---|---|
+| [`src/step5-gear-fix/TECE1250_GreenMachine_V7_7_GearFix.L5X`](src/step5-gear-fix/TECE1250_GreenMachine_V7_7_GearFix.L5X) | `V7_6` + one changed operand. No new tags, no new rungs. |
+| [`src/step5-gear-fix/Manual_Conv_gear_rungs.txt`](src/step5-gear-fix/Manual_Conv_gear_rungs.txt) | The three gearing rungs as neutral text, with how to drive them. |
+
+Axis 145's `MAG` used **`MAG_144`** as its motion control tag — the same tag as axis 144's
+instruction. Two motion instructions sharing one `MOTION_INSTRUCTION` fight over
+`.EN`/`.DN`/`.IP`/`.ER`, so 145's gearing faults would have been invisible or attributed to
+144. `MAG_145` was declared and referenced zero times, which is what made it findable.
+
+Pre-existing, like the jog gate. Found by auditing the gearing rungs before using them rather
+than after.
+
 ## Version numbering
 
 The machine is the **Green Machine** — the motion group in the controller is already called
@@ -161,7 +176,8 @@ Numbering follows the ACD on Dan's bench, not this repo's history:
 | `V7_3` | + manual faceplate groundwork |
 | `V7_4` | **Not in this repo.** The first import, which carried a `LIM` instruction on the `Travel_Time` clamp rung |
 | `V7_5` | `LIM` replaced with `GE`/`LE` |
-| `V7_6` | `Mode_Manual` gate on the jog-release rungs; `Stop_PB` ships as 0. Current |
+| `V7_6` | `Mode_Manual` gate on the jog-release rungs; `Stop_PB` ships as 0 |
+| `V7_7` | Axis 145's `MAG` given its own motion control tag. **Current** |
 
 The gap at `V7_4` is deliberate — it is a real version that exists on disk and briefly had a
 real defect. Renumbering to hide it would make the bench copy and the repo disagree, which is
