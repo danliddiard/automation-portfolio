@@ -1,0 +1,48 @@
+Manual_Conv jog-release rungs - neutral text listing
+==========================================================================
+
+Source of truth is TECE1250_GreenMachine_V7_6_JogGate.L5X.
+
+V7_6 = V7_5 plus one contact on five rungs, and Stop_PB shipping as 0.
+Cumulative - it contains the status pill, the manual faceplate groundwork
+and the sequencer upgrade as well.
+
+To fix by hand instead of importing: add XIC(Mode_Manual) to the front of
+rungs 9, 19, 29, 39 and 49 of Manual_Conv.
+
+--------------------------------------------------------------------------
+
+Rung 9
+  // 141 JOG release. Gated by Mode_Manual: without it this rung sees the
+  // AUTO sequencer's MAJ in process with no manual jog button pressed, and
+  // stops it one scan after AutoSeq_V5 starts it - every step, every axis.
+  // The jog start rung was already gated; this is the matching undo.
+  XIC(Mode_Manual)XIO(Jog_141)XIC(MAJ_141.IP)MAS(Zippy_Axis_141,MAS_141,1,1,Jog_Decel,0,0,100.0,2);
+
+Rung 19
+  // 142 JOG release. Gated by Mode_Manual: without it this rung sees the
+  // AUTO sequencer's MAJ in process with no manual jog button pressed, and
+  // stops it one scan after AutoSeq_V5 starts it - every step, every axis.
+  // The jog start rung was already gated; this is the matching undo.
+  XIC(Mode_Manual)XIO(Jog_142)XIC(MAJ_142.IP)MAS(Zippy_Axis_142,MAS_142,1,1,Jog_Decel,0,0,100.0,2);
+
+Rung 29
+  // 143 JOG release. Gated by Mode_Manual: without it this rung sees the
+  // AUTO sequencer's MAJ in process with no manual jog button pressed, and
+  // stops it one scan after AutoSeq_V5 starts it - every step, every axis.
+  // The jog start rung was already gated; this is the matching undo.
+  XIC(Mode_Manual)XIO(Jog_143)XIC(MAJ_143.IP)MAS(Zippy_Axis_143,MAS_143,1,1,Jog_Decel,0,0,100.0,2);
+
+Rung 39
+  // 144 JOG release. Gated by Mode_Manual: without it this rung sees the
+  // AUTO sequencer's MAJ in process with no manual jog button pressed, and
+  // stops it one scan after AutoSeq_V5 starts it - every step, every axis.
+  // The jog start rung was already gated; this is the matching undo.
+  XIC(Mode_Manual)XIO(Jog_144)XIC(MAJ_144.IP)MAS(Zippy_Axis_144,MAS_144,1,1,Jog_Decel,0,0,100.0,2);
+
+Rung 49
+  // 145 JOG release. Gated by Mode_Manual: without it this rung sees the
+  // AUTO sequencer's MAJ in process with no manual jog button pressed, and
+  // stops it one scan after AutoSeq_V5 starts it - every step, every axis.
+  // The jog start rung was already gated; this is the matching undo.
+  XIC(Mode_Manual)XIO(Jog_145)XIC(MAJ_145.IP)MAS(Zippy_Axis_145,MAS_145,1,1,Jog_Decel,0,0,100.0,2);

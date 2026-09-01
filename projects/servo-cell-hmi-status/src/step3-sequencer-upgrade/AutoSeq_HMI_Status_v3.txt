@@ -1,0 +1,243 @@
+AutoSeq_V5 and HMI_Status (v3) - neutral text listing
+==========================================================================
+
+Source of truth is TECE1250_GreenMachine_V7_5_SeqUpgrade.L5X.
+
+V7_5 = V7_3 plus four sequencer changes. Cumulative - it contains the status pill
+and the manual-faceplate work as well.
+
+--------------------------------------------------------------------------
+
+### Routine: AutoSeq_V5
+
+Rung 0
+  // Start Auto Motion. One-shot latch off the HMI momentary pushbutton.
+  XIC(Start_Auto_PB)ONS(Start_ONS)OTL(Auto_Running)OTU(Servo_On_Timeout);
+
+Rung 1
+  // Stop. Drop auto and force the shutdown step. Shutdown rungs are NOT
+  // gated by Auto_Running.
+  XIC(Stop_PB)OTU(Auto_Running)MOVE(99,Seq_Step);
+
+Rung 2
+  // Idle to MSO. Step 0 rolls to step 1 as soon as auto is running.
+  XIC(Auto_Running)EQ(Seq_Step,0)MOVE(1,Seq_Step);
+
+Rung 3
+  // Step 1. MSO axes 141-145 on its own timer. Axis 146 is never commanded.
+  // 800 ms settle.
+  XIC(Auto_Running)EQ(Seq_Step,1)MSO(Zippy_Axis_141,MSO_141)MSO(Zippy_Axis_142,MSO_142)MSO(Zippy_Axis_143,MSO_143)MSO(Zippy_Axis_144,MSO_144)MSO(Zippy_Axis_145,MSO_145)MOVE(800,MSO_TMR.PRE)TON(MSO_TMR,?,?);
+
+Rung 4
+  // Servo-on proof. All five in ServoActionStatus, in series - every axis,
+  // not any axis. Computed every scan; only read at step 1.
+  XIC(Zippy_Axis_141.ServoActionStatus)XIC(Zippy_Axis_142.ServoActionStatus)XIC(Zippy_Axis_143.ServoActionStatus)XIC(Zippy_Axis_144.ServoActionStatus)XIC(Zippy_Axis_145.ServoActionStatus)OTE(All_Servos_On);
+
+Rung 5
+  // Servo-on timeout. The 800 ms settle expired and at least one axis never
+  // enabled. The sequence deliberately does NOT advance - it stops here and
+  // faults, because the alternative is jogging an axis that is not on.
+  // Latched so it survives the stop; rung 0 clears it on the next start
+  // attempt.
+  XIC(Auto_Running)EQ(Seq_Step,1)XIC(MSO_TMR.DN)XIO(All_Servos_On)OTL(Servo_On_Timeout);
+
+Rung 6
+  // Advance out of step 1 only with proof: the settle expired AND all five
+  // axes report servo action AND this start attempt has not already timed
+  // out. Seq_TMR.DN is still 0 here, so the next rung cannot double-advance.
+  // The XIO(Servo_On_Timeout) makes a timeout a failed start rather than a
+  // slow one - once it latches, the only way forward is stop and start
+  // again. If a drive on this cell genuinely needs longer than 800 ms to
+  // enable, raise MSO_TMR.PRE in rung 3; do not delete this contact.
+  XIC(Auto_Running)EQ(Seq_Step,1)XIC(MSO_TMR.DN)XIC(All_Servos_On)XIO(Servo_On_Timeout)MOVE(2,Seq_Step);
+
+Rung 7
+  // Advance motion steps 2-11 on Seq_TMR.DN. RES restarts the timebase
+  // because the step timer rung stays true across all ten steps.
+  XIC(Auto_Running)GE(Seq_Step,2)LE(Seq_Step,11)XIC(Seq_TMR.DN)ADD(Seq_Step,1,Seq_Step)RES(Seq_TMR);
+
+Rung 8
+  // Wrap. Step 11 increments to 12, caught here and folded back to step 2
+  // for a continuous loop.
+  XIC(Auto_Running)EQ(Seq_Step,12)ADD(Cycle_Count,1,Cycle_Count)MOVE(2,Seq_Step);
+
+Rung 9
+  // Step 2. Jog 141 forward.
+  XIC(Auto_Running)EQ(Seq_Step,2)MAJ(Zippy_Axis_141,MAJ_141,0,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 10
+  // Step 3. Stop 141, jog 142 forward.
+  XIC(Auto_Running)EQ(Seq_Step,3)MAS(Zippy_Axis_141,MAS_141,0,1,Jog_Decel,0,0,100.0,2)MAJ(Zippy_Axis_142,MAJ_142,0,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 11
+  // Step 4. Stop 142, jog 143 forward.
+  XIC(Auto_Running)EQ(Seq_Step,4)MAS(Zippy_Axis_142,MAS_142,0,1,Jog_Decel,0,0,100.0,2)MAJ(Zippy_Axis_143,MAJ_143,0,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 12
+  // Step 5. Stop 143, jog 144 forward.
+  XIC(Auto_Running)EQ(Seq_Step,5)MAS(Zippy_Axis_143,MAS_143,0,1,Jog_Decel,0,0,100.0,2)MAJ(Zippy_Axis_144,MAJ_144,0,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 13
+  // Step 6. Stop 144, jog 145 forward. Far end of the run.
+  XIC(Auto_Running)EQ(Seq_Step,6)MAS(Zippy_Axis_144,MAS_144,0,1,Jog_Decel,0,0,100.0,2)MAJ(Zippy_Axis_145,MAJ_145,0,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 14
+  // Step 7. Reverse 145. Merge is enabled on the MAJ so it replaces the
+  // forward jog on that axis.
+  XIC(Auto_Running)EQ(Seq_Step,7)MAJ(Zippy_Axis_145,MAJ_145,1,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 15
+  // Step 8. Stop 145, reverse 144.
+  XIC(Auto_Running)EQ(Seq_Step,8)MAS(Zippy_Axis_145,MAS_145,0,1,Jog_Decel,0,0,100.0,2)MAJ(Zippy_Axis_144,MAJ_144,1,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 16
+  // Step 9. Stop 144, reverse 143.
+  XIC(Auto_Running)EQ(Seq_Step,9)MAS(Zippy_Axis_144,MAS_144,0,1,Jog_Decel,0,0,100.0,2)MAJ(Zippy_Axis_143,MAJ_143,1,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 17
+  // Step 10. Stop 143, reverse 142.
+  XIC(Auto_Running)EQ(Seq_Step,10)MAS(Zippy_Axis_143,MAS_143,0,1,Jog_Decel,0,0,100.0,2)MAJ(Zippy_Axis_142,MAJ_142,1,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 18
+  // Step 11. Stop 142, reverse 141. Next DN sends the step to 12 and the
+  // wrap rung returns it to 2.
+  XIC(Auto_Running)EQ(Seq_Step,11)MAS(Zippy_Axis_142,MAS_142,0,1,Jog_Decel,0,0,100.0,2)MAJ(Zippy_Axis_141,MAJ_141,1,Jog_Speed,0,Jog_Accel,0,Jog_Decel,0,0,100.0,100.0,2,1,0,0.0,0);
+
+Rung 19
+  // Safe default step time, written unconditionally. See the next rung.
+  MOVE(3500,Seq_TMR.PRE);
+
+Rung 20
+  // Operator value wins only if it is sane. Travel_Time is HMI-writable and
+  // feeds the step timer directly; at 0 the TON is done on the scan it
+  // starts and all ten motion steps fire in a few milliseconds. Same
+  // priority-encoder shape as HMI_Status: safe default written
+  // unconditionally above, override here.
+  // GE/LE in series rather than LIM: it is the idiom the rest of this
+  // program already uses for a range test, and LIM inverts its own meaning
+  // when the low limit exceeds the high one - not a behaviour to leave
+  // sitting behind an operator-writable number.
+  GE(Travel_Time,500)LE(Travel_Time,10000)MOVE(Travel_Time,Seq_TMR.PRE);
+
+Rung 21
+  // Step timer for motion steps 2-11. Preset is set by the two rungs above.
+  XIC(Auto_Running)GE(Seq_Step,2)LE(Seq_Step,11)TON(Seq_TMR,?,?);
+
+Rung 22
+  // Shutdown 99. Decel all five to a stop and hold 600 ms on its own timer
+  // before dropping servo power.
+  EQ(Seq_Step,99)MAS(Zippy_Axis_141,MAS_141,0,1,Jog_Decel,0,0,100.0,2)MAS(Zippy_Axis_142,MAS_142,0,1,Jog_Decel,0,0,100.0,2)MAS(Zippy_Axis_143,MAS_143,0,1,Jog_Decel,0,0,100.0,2)MAS(Zippy_Axis_144,MAS_144,0,1,Jog_Decel,0,0,100.0,2)MAS(Zippy_Axis_145,MAS_145,0,1,Jog_Decel,0,0,100.0,2)MOVE(600,Stop_TMR.PRE)TON(Stop_TMR,?,?);
+
+Rung 23
+  // Shutdown complete. MSF all five, then return to idle. MSF fires before
+  // Seq_Step is cleared.
+  EQ(Seq_Step,99)XIC(Stop_TMR.DN)MSF(Zippy_Axis_141,MSF_141)MSF(Zippy_Axis_142,MSF_142)MSF(Zippy_Axis_143,MSF_143)MSF(Zippy_Axis_144,MSF_144)MSF(Zippy_Axis_145,MSF_145)MOVE(0,Seq_Step)RES(Stop_TMR);
+
+--------------------------------------------------------------------------
+
+### Routine: HMI_Status
+
+Rung 0
+  // Fault source 1, axis 141. Broken out per axis so the manual screen's
+  // summary strip can light the row that is actually faulted instead of a
+  // single cell-level lamp that makes the operator go find out which drive
+  // it was. The word is latched by the drive until an MAFR, so no seal-in is
+  // needed here.
+  NEQ(Zippy_Axis_141.AxisFault,0)OTE(Axis_Fault_141);
+
+Rung 1
+  // Fault source 1, axis 142. See rung 0.
+  NEQ(Zippy_Axis_142.AxisFault,0)OTE(Axis_Fault_142);
+
+Rung 2
+  // Fault source 1, axis 143. See rung 0.
+  NEQ(Zippy_Axis_143.AxisFault,0)OTE(Axis_Fault_143);
+
+Rung 3
+  // Fault source 1, axis 144. See rung 0.
+  NEQ(Zippy_Axis_144.AxisFault,0)OTE(Axis_Fault_144);
+
+Rung 4
+  // Fault source 1, axis 145. See rung 0.
+  NEQ(Zippy_Axis_145.AxisFault,0)OTE(Axis_Fault_145);
+
+Rung 5
+  // Roll the five axis lamps into the cell-level summary the status pill
+  // reads.
+  [XIC(Axis_Fault_141),XIC(Axis_Fault_142),XIC(Axis_Fault_143),XIC(Axis_Fault_144),XIC(Axis_Fault_145)]OTE(Axis_Faulted);
+
+Rung 6
+  // Fault source 2a - the sequencer asked for servo-on and was refused.
+  // Broken out per instruction family so the pill and the fault list can say
+  // which command was rejected, not just that something was.
+  [XIC(MSO_141.ER),XIC(MSO_142.ER),XIC(MSO_143.ER),XIC(MSO_144.ER),XIC(MSO_145.ER)]OTE(MSO_Error);
+
+Rung 7
+  // Fault source 2b - a jog was refused. This is the one that would
+  // otherwise fail silently: the step timer keeps advancing and the conveyor
+  // simply never moves.
+  [XIC(MAJ_141.ER),XIC(MAJ_142.ER),XIC(MAJ_143.ER),XIC(MAJ_144.ER),XIC(MAJ_145.ER)]OTE(MAJ_Error);
+
+Rung 8
+  // Fault source 2c - a stop was refused. Treated as a fault, not a
+  // nuisance: an axis that will not take a MAS is an axis that will not come
+  // down on the shutdown step.
+  [XIC(MAS_141.ER),XIC(MAS_142.ER),XIC(MAS_143.ER),XIC(MAS_144.ER),XIC(MAS_145.ER)]OTE(MAS_Error);
+
+Rung 9
+  // Roll the three command errors into one summary. .ER bits self-clear when
+  // the instruction re-executes, so a successful restart clears the pill -
+  // there is deliberately no separate acknowledge latch.
+  [XIC(MSO_Error),XIC(MAJ_Error),XIC(MAS_Error)]OTE(Seq_Cmd_Error);
+
+Rung 10
+  // PRIORITY ENCODER, rungs 10-13. Seq_Status is written unconditionally to
+  // STOPPED here and then overwritten in ascending priority below, so the
+  // last true rung wins and the tag can never be left stale or undefined on
+  // any scan. Read these four rungs as one block; do not reorder them.
+  // 0 STOPPED (default) < 1 RUNNING < 2 HOLDING < 3 FAULTED.
+  MOVE(0,Seq_Status);
+
+Rung 11
+  // 1 RUNNING. Auto latched and inside the motion steps 2-11. Step 1 is the
+  // MSO settle and is not running yet; step 12 only exists for the single
+  // scan before the wrap rung folds it back to 2.
+  XIC(Auto_Running)GE(Seq_Step,2)LE(Seq_Step,11)MOVE(1,Seq_Status);
+
+Rung 12
+  // 2 HOLDING. Commanded transition, motion not at steady state: step 1 is
+  // servo-on settling, step 99 is the decel-and-hold before MSF. Step 99 is
+  // intentionally NOT gated by Auto_Running - Stop_PB drops that bit on the
+  // same scan it forces the shutdown step.
+  [EQ(Seq_Step,1),EQ(Seq_Step,99)]MOVE(2,Seq_Status);
+
+Rung 13
+  // 3 FAULTED. Highest priority, written last. A drive fault or a refused
+  // motion command outranks whatever the step counter thinks it is doing.
+  [XIC(Axis_Faulted),XIC(Seq_Cmd_Error),XIC(Servo_On_Timeout)]MOVE(3,Seq_Status);
+
+Rung 14
+  // START BLOCKED REASON, this rung and the three below. Same priority-
+  // encoder shape as Seq_Status: default written unconditionally,
+  // overwritten in ascending priority, last true rung wins. Exists because
+  // Manual_Conv unlatches Auto_Running in the same scan AutoSeq_V5 latches
+  // it, so a start press in manual does nothing at all and says nothing
+  // about why. HMI diagnostic - no rung reads this.
+  // 0 clear to start < 3 already running < 2 faulted < 1 in manual.
+  MOVE(0,Start_Blocked_Reason);
+
+Rung 15
+  // 3 - already running. Lowest priority: true but not the interesting
+  // answer.
+  XIC(Auto_Running)MOVE(3,Start_Blocked_Reason);
+
+Rung 16
+  // 2 - the cell is faulted. Clear the fault before a start will hold.
+  [XIC(Axis_Faulted),XIC(Seq_Cmd_Error),XIC(Servo_On_Timeout)]MOVE(2,Start_Blocked_Reason);
+
+Rung 17
+  // 1 - in manual. Highest priority because it is the one that blocks
+  // silently, and the one an operator hits first.
+  XIC(Mode_Manual)MOVE(1,Start_Blocked_Reason);
+
+--------------------------------------------------------------------------

@@ -11,7 +11,10 @@ Thumbs.db
 **/.env
 **/*.pfx
 **/*.p12
-**/*license*
+# (Rockwell/vendor activation files. Deliberately NOT `*license*` -- that pattern
+# also swallows this repo's own LICENSE file.)
+**/*.lic
+**/*activation*
 **/*.tclrs
 **/*.tclrq
 secrets/

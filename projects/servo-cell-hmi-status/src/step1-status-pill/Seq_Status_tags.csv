@@ -1,0 +1,12 @@
+remark,"CSV-Import-Export"
+remark,"Date = Mon Aug 31 12:04:11 2026"
+remark,"Version = RSLogix 5000 v38.01"
+remark,"Owner = Daniel Liddiard"
+remark,"Controller = TECE1250ServoMotorsandDrives"
+TYPE,SCOPE,NAME,DESCRIPTION,DATATYPE,SPECIFIER,ATTRIBUTES
+TAG,,Axis_Faulted,"Any of the five Kinetix axes reporting a non-zero AxisFault word. Fault source for Seq_Status = 3.",BOOL,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
+TAG,,MAJ_Error,"A sequencer MAJ was rejected (.ER). Clears when the sequencer re-issues the jog on the next cycle.",BOOL,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
+TAG,,MAS_Error,"A sequencer MAS was rejected (.ER). Clears when the sequencer re-issues the stop on the next cycle.",BOOL,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
+TAG,,MSO_Error,"A sequencer MSO was rejected (.ER). Clears when the sequencer re-issues the servo-on at step 1.",BOOL,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
+TAG,,Seq_Cmd_Error,"Any motion command the auto sequencer issues came back errored. Fault source for Seq_Status = 3.",BOOL,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
+TAG,,Seq_Status,"HMI status pill. 0 STOPPED, 1 RUNNING, 2 HOLDING, 3 FAULTED. Written only by HMI_Status.",DINT,,"(RADIX := Decimal, Constant := false, ExternalAccess := Read/Write)"
