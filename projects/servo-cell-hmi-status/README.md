@@ -1,6 +1,6 @@
 # Servo cell — HMI status pill
 
-**Status:** source in repo, runs in the class cell · demo clip TBD
+**Status:** runs in auto on the cell, driven from a PanelView Plus 1000 · demo clip TBD
 **Platform:** Studio 5000 v38 · CompactLogix 1769-L33ERM · 5× Kinetix 6500 · FactoryTalk View ME v16
 **Why it is here:** one small, complete, honest piece of HMI work — the operator-facing
 state of a machine, derived once in the PLC instead of five times on the screen.
@@ -44,6 +44,25 @@ The three decisions worth defending are in [docs/state-model.md](docs/state-mode
 `MAJ_Error` is broken out on its own because a refused jog is the one failure mode here
 that is otherwise completely silent — the step timer keeps counting, the sequence keeps
 advancing, and the conveyor just never moves.
+
+## What running it actually found
+
+The pill was the deliverable. The more useful outcome was that commissioning it surfaced three
+defects in logic that predates this work — none of them things a desk review would have caught,
+all found by putting a real terminal on a real controller and pressing the button.
+
+| What | How it showed up |
+|---|---|
+| The manual routine stopped every auto jog, one scan after it started | Each step took its full 1.8 s while the axis twitched an inch. [Note](../../notes/manual-routine-killed-the-auto-jog.md) |
+| `Stop_PB` shipped latched at `1`, so no start press could ever hold | Start Auto did nothing at all, silently — the stop button was held down inside the export |
+| Two `MAG` instructions shared one motion control tag | Found by census before the feature was ever used. [Note](../../notes/duplicate-motion-control-tag.md) |
+
+A fourth is still open, and it is mine rather than inherited: `Seq_Step` between 1 and 11 with
+`Auto_Running` false is an orphaned state that nothing detects, because `Servo_On_Timeout` — the
+guard written to catch a stalled start — is itself gated by `Auto_Running`. The one case where
+the sequencer is genuinely abandoned is the case the guard cannot see. One rung closes it. It is
+listed here rather than quietly fixed because a guard with a blind spot is worth more as a
+worked example than as a silent commit.
 
 ## Files
 

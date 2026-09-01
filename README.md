@@ -30,20 +30,26 @@ lives in a binary a repo cannot carry.
 
 | Folder | Status | The problem it solves |
 |---|---|---|
-| [servo-cell-hmi-status](projects/servo-cell-hmi-status) | 🟢 **source in repo** | Operator state pill — one DINT in Logix, one multistate indicator in FTView ME |
+| [servo-cell-hmi-status](projects/servo-cell-hmi-status) | 🟢 **runs on hardware** | Operator state pill — one DINT in Logix, one multistate indicator on a PanelView |
 | [l5x-from-spreadsheet](projects/l5x-from-spreadsheet) | 🟡 scoped | Engineering automation — generate Logix tags and routines from data instead of typing them |
 | [intersection-controller](projects/intersection-controller) | 🟡 scoped | State machine with conflicting-call interlocks. Same thinking as a machine cell |
 | [logix-fault-handler](projects/logix-fault-handler) | 🟡 scoped | First-out fault pattern — which alarm actually stopped the machine, not all forty |
 | [twincat-packml-cell](projects/twincat-packml-cell) | ⚪ planned | The same cell in TwinCAT 3, PackML state model, simulation first |
 | [iiot-edge-bridge](projects/iiot-edge-bridge) | ⚪ planned | That cell → OPC UA + MQTT → Ignition, one curated tag contract |
 
-🟢 source committed and runnable · 🟡 scope and acceptance criteria written, source pending ·
+🟢 built, downloaded and run on the real cell · 🟡 scope and acceptance criteria written, source pending ·
 ⚪ sequenced behind an earlier folder on purpose
 
 The order is deliberate. The IIoT bridge is last because a broker with no PLC behind it is a
 screenshot, not a project.
 
-Short technical notes — the LinkedIn-sized ones — live in [notes/](notes/).
+Short technical notes — the LinkedIn-sized ones — live in [notes/](notes/):
+
+| Note | The short version |
+|---|---|
+| [The manual routine was stopping every auto jog](notes/manual-routine-killed-the-auto-jog.md) | Two routines, each correct alone, coupled through a `.IP` status bit. The "do" was gated by mode; the "undo" was not |
+| [Two motion instructions sharing one control tag](notes/duplicate-motion-control-tag.md) | Found by counting, not reading. A declared-but-unreferenced `MOTION_INSTRUCTION` tag points straight at the duplicate |
+| [IO-Link beacon command looks negative after MOVE to INT](notes/iolink-int-overflow.md) | Signed 16-bit wrap, not a broken beacon. Verify on the device, not by the watch window sign |
 
 ---
 
